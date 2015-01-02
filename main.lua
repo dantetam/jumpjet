@@ -1,6 +1,8 @@
 --Declarations
 local wP, aP, sP, dP
 local player 
+local enemies = {}
+local bullets = {}
 
 --Set up the player
 --player:insert(display.newRect(50,50,6,12))
@@ -22,23 +24,38 @@ function keyPressed(event)
 		end
 	end
 	if event.keyName == "space" and player.velocity == 3 then
-		player.velocity = -7
-		print("jump")
+		player.velocity = -10
 	end
 end
 
 function mousePressed(event)
 	if event.isPrimaryButtonDown then
-		
+		local angle = math.atan2(event.y - player.y, event.x - player.x)
+		local b = newProjectile(player.x, player.y, math.cos(angle)*10, math.sin(angle)*10)
+		b:rotate(angle)
+		table.insert(bullets, b)
 	end
 end
 
 function newCharacter(x,y)
+	--[[
 	local ch = display.newGroup()
 	ch:insert(display.newRect(x,y,6,12))
 	ch:insert(display.newRect(x,y-10,6,6))
 	ch.velocity = 0
 	return ch
+	]]
+	local ch = display.newRect(x,y,8,24)
+	ch.velocity = 0
+	return ch
+end
+
+function newProjectile(x,y,velX,velY)
+	local b = display.newRect(x,y,10,2)
+	b:rotate(math.deg(math.atan2(velY,velX)))
+	b.velX = velX
+	b.velY = velY
+	return b
 end
 
 function collide(a,b)
@@ -53,7 +70,7 @@ function collide(a,b)
 end
 
 function gravity(person)
-	if (person.y + 55 + person.velocity) < display.contentHeight then
+	if (person.y + 5 + person.velocity) < display.contentHeight then
 		person:translate(0,person.velocity) 
 	end
 	if person.velocity < 3 then
@@ -65,11 +82,25 @@ end
 
 function tick()
 	local speed = 3
+	if math.random() < 0.025 and #enemies < 10 then
+		table.insert(enemies,newCharacter(600,250))
+	end
 	--if wP then player:translate(0,-speed) end
 	if aP then player:translate(-speed,0) end
 	--if sP then player:translate(0,speed) end
 	if dP then player:translate(speed,0) end
 	gravity(player)
+	for i = 1,#enemies do
+		gravity(enemies[i])
+		if enemies[i].x > player.x then
+			enemies[i]:translate(-speed/2,0)
+		else
+			enemies[i]:translate(speed/2,0)
+		end
+	end
+	for i = 1,#bullets do
+		bullets[i]:translate(bullets[i].velX,bullets[i].velY)
+	end
 end
 
 player = newCharacter(50,50)
