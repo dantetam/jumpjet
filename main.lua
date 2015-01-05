@@ -32,6 +32,7 @@ function mousePressed(event)
 	if event.isPrimaryButtonDown then
 		local angle = math.atan2(event.y - player.y, event.x - player.x)
 		local b = newProjectile(player.x, player.y, math.cos(angle)*10, math.sin(angle)*10)
+		b.type = "player"
 		b:rotate(angle)
 		table.insert(bullets, b)
 	end
@@ -97,9 +98,32 @@ function tick()
 		else
 			enemies[i]:translate(speed/2,0)
 		end
+		if enemies[i].y + 10 < player.y then
+			if math.random() < 0.05 then
+				enemies[i].velocity = -10
+			end
+		end
+		if math.random() < 0.04 then
+			local angle = math.atan2(player.y - enemies[i].y, player.x - enemies[i].x)
+			local b = newProjectile(enemies[i].x, enemies[i].y, math.cos(angle)*10, math.sin(angle)*10)
+			b.type = "enemy"
+			b:rotate(angle)
+			table.insert(bullets, b)
+		end
 	end
 	for i = 1,#bullets do
 		bullets[i]:translate(bullets[i].velX,bullets[i].velY)
+		if bullets[i].type == "enemy" then
+			if collide(bullets[i],player) then
+				print("Player hit")
+			end
+		elseif bullets[i].type == "player" then
+			for j = 1,#enemies do
+				if collide(enemies[j],player) then
+					print("Enemy hit")
+				end
+			end
+		end
 	end
 end
 
