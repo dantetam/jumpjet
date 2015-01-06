@@ -71,8 +71,14 @@ function collide(a,b)
 end
 
 function gravity(person)
-	if (person.y + 5 + person.velocity) < display.contentHeight then
-		person:translate(0,person.velocity) 
+	if person.velocity > 0 then
+		if (person.y + 5 + person.velocity) < display.contentHeight then
+			person:translate(0,person.velocity) 
+		end
+	else
+		if person.y + person.velocity > 0 then
+			person:translate(0,person.velocity) 
+		end
 	end
 	if person.velocity < 3 then
 		person.velocity = person.velocity + 1
@@ -103,26 +109,35 @@ function tick()
 				enemies[i].velocity = -10
 			end
 		end
-		if math.random() < 0.04 then
+		if math.random() < 0.025 then
+			enemies[i].velocity = -10
+		end
+		if math.random() < 0.01 then
 			local angle = math.atan2(player.y - enemies[i].y, player.x - enemies[i].x)
-			local b = newProjectile(enemies[i].x, enemies[i].y, math.cos(angle)*10, math.sin(angle)*10)
+			local b = newProjectile(enemies[i].x, enemies[i].y, math.cos(angle)*4, math.sin(angle)*4)
 			b.type = "enemy"
 			b:rotate(angle)
 			table.insert(bullets, b)
 		end
 	end
-	for i = 1,#bullets do
+	for i = #bullets,1,-1 do
 		bullets[i]:translate(bullets[i].velX,bullets[i].velY)
 		if bullets[i].type == "enemy" then
 			if collide(bullets[i],player) then
-				print("Player hit")
+				--print("Player hit")
 			end
 		elseif bullets[i].type == "player" then
+			bullets[i].velX = bullets[i].velX * 1.05
+			bullets[i].velY = bullets[i].velY * 1.05
 			for j = 1,#enemies do
-				if collide(enemies[j],player) then
-					print("Enemy hit")
+				if collide(enemies[j],bullets[i]) then
+					--print("Enemy hit")
 				end
 			end
+		end
+		if bullets[i].x < 0 or bullets[i].x > display.contentWidth or bullets[i].y < 0 or bullets[i].y > display.contentHeight then
+			bullets[i]:removeSelf()
+			table.remove(bullets, i)
 		end
 	end
 end
